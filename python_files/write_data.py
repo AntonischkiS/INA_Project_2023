@@ -1,7 +1,4 @@
-from typing import TextIO
 import json
-
-import networkx as nx
 
 
 # mandate = abgeordneter in 1 legislatur periode
@@ -23,7 +20,7 @@ def parse_json_mandates(json_file):
     for id, name in data['factions']:
         print("{} - {}".format(id, name))
         factions[id] = (name, get_fraction_color(name))
-    print("factions",factions)
+    print("factions", factions)
     for id, name, f_id in data['mandates']:
         print("fid", f_id)
         fr, c = factions[f_id]
@@ -43,8 +40,8 @@ def write_mandates_as_nodes(file_name, mandates):
 
 
 test = {"factions": [{"id": 234, "name": 'DIE LINKE'}, {"id": 345, "name": 'SPD'}, ],
-     "mandates": [{"id": 54325, "name": 'Peter Müller', "faction_id": 234},
-                  {"id": 53264, "name": 'Angela Angel', "faction_id": 345}, ]}
+        "mandates": [{"id": 54325, "name": 'Peter Müller', "faction_id": 234},
+                     {"id": 53264, "name": 'Angela Angel', "faction_id": 345}, ]}
 # test = str(test)
 js = json.dumps(test)
 # print(js)
