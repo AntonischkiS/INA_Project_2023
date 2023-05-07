@@ -5,13 +5,15 @@ import json
 
 def get_fraction_color(name):
     if name == 'SPD': return "red"
-    if name == 'CDU': return "black"
+    if name == 'CDU' or name == 'CSU': return "black"
     if name == 'FDP': return "yellow"
+    if name == 'Grüne': return "green"
+    if name == 'AFD': return "blue"
     if name == 'Die Linke':
         return "magenta"
     # todo: color remaining factions
     else:
-        return "pink"
+        return "grey"
 
 
 def parse_json_mandates(json_file):
@@ -35,14 +37,13 @@ def parse_json_mandates(json_file):
 # mandate should be a tuple of (name, fraction, mandate_id, color)
 def write_mandates_as_nodes(file_name, mandates):
     file = open(file_name, "a")
-    file.write("*vertices " + str(len(mandates))+ "\n")
+    file.write("*vertices " + str(len(mandates)) + "\n")
     for index, mandate in enumerate(mandates):
         name, fraction, id, color = mandate
         file.write(
-            str(index+1) + " " + f"\"{name}\"" + f" \"{fraction}\" \" {id}\" \"{color}\" \n")  # further
+            str(index + 1) + " " + f"\"{name}\"" + f" \"{fraction}\" \" {id}\" \"{color}\" \n")  # further
         # info should be put before \n
     file.close()
-
 
 # test = {"factions": [{"id": 234, "name": 'DIE LINKE'}, {"id": 345, "name": 'SPD'}, ],
 #         "mandates": [{"id": 54325, "name": 'Peter Müller', "faction_id": 234},
