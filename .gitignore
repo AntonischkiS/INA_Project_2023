@@ -133,4 +133,5 @@ dmypy.json
 
 
 # Our sruff
-abgeordnetenwatch/data/
+src/data/
+personal_scripts/
