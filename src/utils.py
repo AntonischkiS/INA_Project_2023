@@ -25,10 +25,47 @@ def get_hist_bin():
     return np.arange(0, 1.1, 0.1)
 
 
+def factions_for_range(G, wrange=(.8, .85)):
+    weights = []
+    for u, v, data in G.edges(data=True):
+        if wrange[0] <= data['weight'] <= wrange[1]:
+            weights.append((u, v, data))
+    result = []
+    for w in weights:
+        fac_tuple = sorted((G.nodes[w[0]]['cluster'], G.nodes[w[1]]['cluster']))
+        result.append((fac_tuple[0], fac_tuple[1], w[2]))
+    return result  # [(G.nodes[w[0]]['cluster'], G.nodes[w[1]]['cluster'], w[2]) for w in weights]
+
+
+def max_faction_in_range(G, wrange=(.8, .85)):
+    factions = factions_for_range(G, wrange)
+    faction_count = {}
+    for faction in factions:
+        if faction[0] not in faction_count:
+            faction_count[faction[0]] = 0
+        if faction[1] not in faction_count:
+            faction_count[faction[1]] = 0
+        faction_count[faction[0]] += 1
+        faction_count[faction[1]] += 1
+    max_faction = max(faction_count, key=faction_count.get)
+    return max_faction
+
+
+def max_faction_pair_in_range(G, wrange=(.8, 1)):
+    factions = factions_for_range(G, wrange)
+    faction_count = {}
+    for faction in factions:
+        if (faction[0], faction[1]) not in faction_count:
+            faction_count[(faction[0], faction[1])] = 0
+        faction_count[(faction[0], faction[1])] += 1
+    max_faction = max(faction_count, key=faction_count.get)
+    return faction_count[max_faction]
+
+
 def plot_weights_hist(G, amount_bins=25):
     weights = get_weight_list(G)
     counts, hist = np.histogram(weights, bins=amount_bins)
-    plt.hist(hist[:-1], bins=amount_bins,weights=counts/np.sum(counts) , edgecolor='black')
+    plt.hist(hist[:-1], bins=amount_bins, weights=counts / np.sum(counts), edgecolor='black')
     plt.show()
 
 
