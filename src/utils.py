@@ -25,7 +25,12 @@ def get_hist_bin():
     return np.arange(0, 1.1, 0.1)
 
 
-def factions_for_range(G, wrange=(.8, .85)):
+def factions_for_range(G: nx.Graph, wrange=(.8, .85)) -> list:
+    """Returns a list of tuples of factions from the politicians of that faction that have an edge with a weight in
+    the given range.
+    E.g. if the edge between Politician A and Politician B has a weight in the range
+    then a tuple with their factions (plus weight) will be added to the list.
+    """
     weights = []
     for u, v, data in G.edges(data=True):
         if wrange[0] <= data['weight'] <= wrange[1]:
@@ -37,7 +42,8 @@ def factions_for_range(G, wrange=(.8, .85)):
     return result  # [(G.nodes[w[0]]['cluster'], G.nodes[w[1]]['cluster'], w[2]) for w in weights]
 
 
-def max_faction_in_range(G, wrange=(.8, .85)):
+def max_faction_in_range(G, wrange=(.8, .85), n=8):
+    """Returns the n factions with the most edges in the given weight range."""
     factions = factions_for_range(G, wrange)
     faction_count = {}
     for faction in factions:
@@ -47,19 +53,18 @@ def max_faction_in_range(G, wrange=(.8, .85)):
             faction_count[faction[1]] = 0
         faction_count[faction[0]] += 1
         faction_count[faction[1]] += 1
-    max_faction = max(faction_count, key=faction_count.get)
-    return max_faction
+    return sorted(faction_count, key=faction_count.get, reverse=True)[:n]
 
 
-def max_faction_pair_in_range(G, wrange=(.8, 1)):
+def max_faction_pair_in_range(G, wrange=(.8, 1), n=8):
+    """Returns the n faction pairs with the most edges in the given weight range."""
     factions = factions_for_range(G, wrange)
     faction_count = {}
     for faction in factions:
         if (faction[0], faction[1]) not in faction_count:
             faction_count[(faction[0], faction[1])] = 0
         faction_count[(faction[0], faction[1])] += 1
-    max_faction = max(faction_count, key=faction_count.get)
-    return faction_count[max_faction]
+    return sorted(faction_count, key=faction_count.get, reverse=True)[:n]
 
 
 def plot_weights_hist(G, amount_bins=25):
