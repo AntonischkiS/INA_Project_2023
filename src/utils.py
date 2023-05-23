@@ -162,6 +162,6 @@ def cluster_distances(G):
     for c in cluster:
         print(c, cluster[c][0] / cluster[c][1])
 
-#def node_distance(G)
-G = createNXGraph('./graphs/Bundestag/',2013)
-cluster_distances(G)
+
+#G = createNXGraph('./graphs/Bundestag/',2013)
+#cluster_distances(G)
