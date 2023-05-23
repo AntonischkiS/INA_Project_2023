@@ -124,4 +124,44 @@ def info(G):
 
     tops(G, nx.betweenness_centrality(G), 'betweenness')
 
+def createNXGraph(base_path, leg_year):
+    G = nx.Graph()
+    leg_period = year_to_period(leg_year)
+    filename_stem = "network"+leg_period
+    with open(base_path+leg_period+'/'+filename_stem+'.net', 'r') as file:
+        file.readline()
 
+        for line in file:
+            if line.startswith("*"):
+                break
+            else:
+                node = line.strip(' ')
+                node = node.split("\"")
+                G.add_node(int(node[0]) - 1, label = node[1], cluster = node[3])
+
+
+        for line in file:
+            i, j, v = line.split()
+            G.add_edge(int(i) - 1, int(j) - 1, weight = float(v))
+    return G
+
+def cluster_distances(G):
+    cluster = {}
+    for u,v,data in G.edges(data = True):
+
+        cluster_tuple = (G.nodes[u]['cluster'],G.nodes[v]['cluster'])
+        weight = data['weight']
+        if cluster_tuple in cluster:
+            current = cluster[cluster_tuple]
+            cluster.update({cluster_tuple: (weight + current[0], 1 + current[1])})
+        elif (cluster_tuple[1],cluster_tuple[0]) in cluster:
+            current = cluster[(cluster_tuple[1],cluster_tuple[0])]
+            cluster.update({(cluster_tuple[1],cluster_tuple[0]): (weight + current[0], 1 + current[1])})
+        else:
+            cluster.update({cluster_tuple: (weight, 1)})
+    for c in cluster:
+        print(c, cluster[c][0] / cluster[c][1])
+
+#def node_distance(G)
+G = createNXGraph('./graphs/Bundestag/',2013)
+cluster_distances(G)
