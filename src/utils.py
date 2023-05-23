@@ -2,6 +2,8 @@ import random
 from collections import deque
 
 import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
 
 BUNDESTAG_DATA_PATH = "data/Bundestag/"
 BUNDESTAG_GRAPH_PATH = "graphs/Bundestag/"
@@ -12,9 +14,27 @@ def year_to_period(year):
     return f'{year}-{int(year) + 4}'
 
 
+def get_weight_list(G):
+    weight_list = []
+    for i, j in G.edges():
+        weight_list.append(G[i][j]['weight'])
+    return weight_list
+
+
+def get_hist_bin():
+    return np.arange(0, 1.1, 0.1)
+
+
+def plot_weights_hist(G, amount_bins=25):
+    weights = get_weight_list(G)
+    counts, hist = np.histogram(weights, bins=amount_bins)
+    plt.hist(hist[:-1], bins=amount_bins,weights=counts/np.sum(counts) , edgecolor='black')
+    plt.show()
+
+
 # Needs the year as input
 def read_graph(year: int):
-    G = nx.read_pajek(BUNDESTAG_GRAPH_PATH + year_to_period(year)+"/network"+year_to_period(year)+".net")
+    G = nx.read_pajek(BUNDESTAG_GRAPH_PATH + year_to_period(year) + "/network" + year_to_period(year) + ".net")
     G = nx.convert_node_labels_to_integers(G, label_attribute='label')
     return G
 
@@ -124,11 +144,12 @@ def info(G):
 
     tops(G, nx.betweenness_centrality(G), 'betweenness')
 
-def createNXGraph(base_path, leg_year):
+
+def createNXGraph(leg_year, base_path=BUNDESTAG_GRAPH_PATH):
     G = nx.Graph()
     leg_period = year_to_period(leg_year)
-    filename_stem = "network"+leg_period
-    with open(base_path+leg_period+'/'+filename_stem+'.net', 'r') as file:
+    filename_stem = "network" + leg_period
+    with open(base_path + leg_period + '/' + filename_stem + '.net', 'r') as file:
         file.readline()
 
         for line in file:
@@ -137,31 +158,32 @@ def createNXGraph(base_path, leg_year):
             else:
                 node = line.strip(' ')
                 node = node.split("\"")
-                G.add_node(int(node[0]) - 1, label = node[1], cluster = node[3])
-
+                G.add_node(int(node[0]) - 1, label=node[1], cluster=node[3])
 
         for line in file:
             i, j, v = line.split()
-            G.add_edge(int(i) - 1, int(j) - 1, weight = float(v))
+            G.add_edge(int(i) - 1, int(j) - 1, weight=float(v))
     return G
+
 
 def cluster_distances(G):
     cluster = {}
-    for u,v,data in G.edges(data = True):
+    for u, v, data in G.edges(data=True):
 
-        cluster_tuple = (G.nodes[u]['cluster'],G.nodes[v]['cluster'])
+        cluster_tuple = (G.nodes[u]['cluster'], G.nodes[v]['cluster'])
         weight = data['weight']
         if cluster_tuple in cluster:
             current = cluster[cluster_tuple]
             cluster.update({cluster_tuple: (weight + current[0], 1 + current[1])})
-        elif (cluster_tuple[1],cluster_tuple[0]) in cluster:
-            current = cluster[(cluster_tuple[1],cluster_tuple[0])]
-            cluster.update({(cluster_tuple[1],cluster_tuple[0]): (weight + current[0], 1 + current[1])})
+        elif (cluster_tuple[1], cluster_tuple[0]) in cluster:
+            current = cluster[(cluster_tuple[1], cluster_tuple[0])]
+            cluster.update({(cluster_tuple[1], cluster_tuple[0]): (weight + current[0], 1 + current[1])})
         else:
             cluster.update({cluster_tuple: (weight, 1)})
     for c in cluster:
         print(c, cluster[c][0] / cluster[c][1])
 
 
-#G = createNXGraph('./graphs/Bundestag/',2013)
-#cluster_distances(G)
+G = createNXGraph(2013, './graphs/Bundestag/')
+# cluster_distances(G)
+# print(get_weight_list(G))
