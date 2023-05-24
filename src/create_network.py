@@ -141,7 +141,7 @@ def generate_edges2(path, mandate_ids):
         for vo1 in AV:
             for vo2 in AV:
                 AC[vo1][vo2] += 1
-                AC[vo2][vo1] += 1
+                # AC[vo2][vo1] += 1
 
         # do +1 in SV for each pair of mandate ids within each of the lists
         for voters in VC.values():
