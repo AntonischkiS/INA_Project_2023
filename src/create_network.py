@@ -109,7 +109,63 @@ def generate_edges(path, mandate_ids):
                 continue
             E.add((min(midx, midy), max(midx, midy), round(cnt / n_polls, 3)))
     return list(E)
-                    
+
+
+def generate_edges2(path, mandate_ids):
+    """
+    generates a list of edges between mandate ids with a weight
+    input:
+    path: to legislature period
+    mandate_ids: list of mandate ids
+    output:
+    list of tuples of the form (id, id, weight)
+    """
+    VOTE_OPTIONS = ['yes', 'no', 'abstain']
+    SV = {id: defaultdict(int) for id in mandate_ids}  # Same Votes count
+    AC = {id: defaultdict(int) for id in mandate_ids}  # Attendance count
+    poll_file_names = list(filter(lambda p: p.startswith('poll'), os.listdir(path)))
+    # error_cnt=set()
+    for pfname in tqdm(poll_file_names):
+        with open(path + '/' + pfname) as f:
+            pdata = json.load(f)
+        # go through poll data and create a list for each vote option
+        # that holds all mandate ids that voted this way
+        VC = {vo: [] for vo in VOTE_OPTIONS}  # vote clusters
+        AV = [] #mandateids that attended vote
+        for vote in pdata['votes']:
+            if (not vote['vote'] == 'no_show') and ( vote['mandate_id'] in mandate_ids) :
+                VC[vote['vote']].append(vote['mandate_id'])
+                AV.append(vote['mandate_id'])
+
+
+        for vo1 in AV:
+            for vo2 in AV:
+                AC[vo1][vo2] += 1
+                AC[vo2][vo1] += 1
+
+        # do +1 in SV for each pair of mandate ids within each of the lists
+        for voters in VC.values():
+            # print(voters)
+            lnv = len(voters)
+            for i in range(lnv):
+                vo1 = voters[i]
+
+                for j in range(i + 1, lnv):
+                    vo2 = voters[j]
+
+                    # assert vo1 in mandate_ids
+                    SV[vo1][vo2] += 1
+                    SV[vo2][vo1] += 1
+
+    # print(len(error_cnt))
+    E = set()
+    n_polls = len(poll_file_names)
+    for midx, row in SV.items():
+        for midy, cnt in row.items():
+            if cnt == 0:
+                continue
+            E.add((min(midx, midy), max(midx, midy), round(cnt / AC[midy][midx], 3)))
+    return list(E)
 
 
 def create_graph_file_from_legislature_data(leg_year, src_path, dst_path):
@@ -128,7 +184,8 @@ def create_graph_file_from_legislature_data(leg_year, src_path, dst_path):
     factions, mandates = parse_json_mandates(leg_src_path+"mandates.json")
     # edges generieren
     print('generating edges')
-    e_list = generate_edges(leg_src_path,list(map(lambda x: x[2], mandates)))
+    #changed to generating edges 2
+    e_list = generate_edges2(leg_src_path,list(map(lambda x: x[2], mandates)))
     print('edges generated')
     # graph file erstellen
     file = open(leg_dst_path + f"network{leg_period}.net", "w")
