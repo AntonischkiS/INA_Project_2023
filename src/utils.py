@@ -8,7 +8,7 @@ BUNDESTAG_DATA_PATH = "data/Bundestag/"
 BUNDESTAG_GRAPH_PATH = "graphs/Bundestag/"
 BUNDESTAG_GRAPH_PATH_V2 = "graphs/Bundestag_only_Attendance/"
 TRANSLATIONS = {"other": "fraktionslos", "Greens": "Die Grünen","DIE GRÜNEN": "Die Grünen", "BÜNDNIS 90/DIE GRÜNEN": "Die Grünen",
-                "Left/PDS": "Die Linke", "CDU/CSU": "CDU", "DIE LINKE.":"Die Linke"}
+                "Left/PDS": "Die Linke", "CDU/CSU": "CDU", "DIE LINKE.":"Die Linke", "DIE LINKE":"Die Linke"}
 YEAR_TO_LEG_ID = {"2021": 132, "2017": 111, "2013": 97, "2009": 83, "2005": 67}
 ELEC_YEARS = [1949, 1953, 1957, 1961, 1965, 1969, 1972, 1976, 1980, 1983, 1987,
               1990, 1994, 1998, 2002, 2005, 2009, 2013, 2017, 2021, 2025]
