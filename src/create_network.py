@@ -11,9 +11,9 @@ def get_fraction_color(name):
     if name == 'SPD': return "red"
     if name == 'CDU/CSU': return "black"
     if name == 'FDP': return "yellow"
-    if name == 'BÜNDNIS 90/DIE GRÜNEN' or name == 'DIE GRÜNEN': return "green"
+    if name in ['BÜNDNIS 90/DIE GRÜNEN', 'DIE GRÜNEN', 'Greens']: return "green"
     if name == 'AfD': return "blue"
-    if name == 'DIE LINKE.' or name == 'DIE LINKE':
+    if name == 'DIE LINKE.' or name == 'DIE LINKE' or 'Left' in name:
         return "magenta"
     # todo: color remaining fractions
     else:
