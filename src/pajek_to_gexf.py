@@ -45,7 +45,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("must specify election year")
         exit()
-    if sys.argv[1] not in utils.YEAR_TO_LEG_ID:
+    if int(sys.argv[1]) not in utils.ELEC_YEARS:
         print("invalid election year")
         exit()
     leg_year = sys.argv[1]

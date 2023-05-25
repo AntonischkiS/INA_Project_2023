@@ -6,10 +6,13 @@ import networkx as nx
 BUNDESTAG_DATA_PATH = "data/Bundestag/"
 BUNDESTAG_GRAPH_PATH = "graphs/Bundestag/"
 YEAR_TO_LEG_ID = {"2021": 132, "2017": 111, "2013": 97, "2009": 83, "2005": 67}
+ELEC_YEARS = [1949, 1953, 1957, 1961, 1965, 1969, 1972, 1976, 1980, 1983, 1987,
+              1990, 1994, 1998, 2002, 2005, 2009, 2013, 2017, 2021, 2025]
 
 
 def year_to_period(year):
-    return f'{year}-{int(year) + 4}'
+    year = int(year)
+    return f'{year}-{ELEC_YEARS[ELEC_YEARS.index(year)+1]}'
 
 
 # Needs the year as input
