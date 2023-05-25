@@ -1,20 +1,60 @@
-import random
-from collections import deque
+from tqdm import tqdm
 
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 
 BUNDESTAG_DATA_PATH = "data/Bundestag/"
-BUNDESTAG_GRAPH_PATH = "graphs/Bundestag_only_Attendance/"
+BUNDESTAG_GRAPH_PATH = "graphs/Bundestag/"
+BUNDESTAG_GRAPH_PATH_V2 = "graphs/Bundestag_only_Attendance/"
+TRANSLATIONS = {"other": "fraktionslos", "Greens": "Bündnis 90/Die Grünen", "Left/PDS": "DIE LINKE", "CDU/CSU": "CDU"}
 YEAR_TO_LEG_ID = {"2021": 132, "2017": 111, "2013": 97, "2009": 83, "2005": 67}
 ELEC_YEARS = [1949, 1953, 1957, 1961, 1965, 1969, 1972, 1976, 1980, 1983, 1987,
               1990, 1994, 1998, 2002, 2005, 2009, 2013, 2017, 2021, 2025]
 
 
+def translate_faction_name(name):
+    if name in TRANSLATIONS:
+        return TRANSLATIONS[name]
+    return name
+
+
+def pairwise_cluster_distances():
+    faction_distance = {}
+    years = {}
+    for i, year in tqdm(enumerate(ELEC_YEARS[:-1])):
+        G = createNXGraph(year, base_path=BUNDESTAG_GRAPH_PATH)
+        cluster = cluster_distances(G)
+        for c in cluster:
+            old = c
+            fst = translate_faction_name(c[0])  # translate to avoid duplicates
+            snd = translate_faction_name(c[1])
+            c = (max(fst, snd), min(fst, snd))  # sort tuple to avoid duplicates
+            # Exclude same faction and faction-less
+            if c[0] == c[1] or c[1] == 'fraktionslos' or c[0] == 'fraktionslos':
+                continue
+            if c not in faction_distance:
+                faction_distance[c] = []
+            faction_distance[c].append(cluster[old][0] / cluster[old][1])
+    for fc in faction_distance:
+        years[fc] = [ELEC_YEARS[:-1][len(ELEC_YEARS) - 2 - i] for i in range(len(faction_distance[fc]))]
+    # print(years)
+    return faction_distance, years
+
+
+def plot_pw_cl_distances():
+    faction_distance, years = pairwise_cluster_distances()
+    for c in faction_distance:
+        plt.plot(years[c], faction_distance[c], label=f'{c[0]}-{c[1]}')
+    plt.legend()
+    plt.ylabel('Distance')
+    plt.xlabel('Year')
+    plt.show()
+
+
 def year_to_period(year):
     year = int(year)
-    return f'{year}-{ELEC_YEARS[ELEC_YEARS.index(year)+1]}'
+    return f'{year}-{ELEC_YEARS[ELEC_YEARS.index(year) + 1]}'
 
 
 def get_weight_list(G):
@@ -22,10 +62,6 @@ def get_weight_list(G):
     for i, j in G.edges():
         weight_list.append(G[i][j]['weight'])
     return weight_list
-
-
-def get_hist_bin():
-    return np.arange(0, 1.1, 0.1)
 
 
 def factions_for_range(G: nx.Graph, wrange=(.8, .85)) -> list:
@@ -84,112 +120,6 @@ def read_graph(year: int):
     return G
 
 
-def component(G, N, i):
-    C = []
-    S = []
-    N.remove(i)
-    S.append(i)
-    while S:
-        i = S.pop()
-        C.append(i)
-        for j in G[i]:
-            if j in N:
-                N.remove(j)
-                S.append(j)
-    return C
-
-
-def components(G):
-    C = []
-    N = set(G.nodes())
-    while N:
-        C.append(component(G, N, next(iter(N))))
-    return C
-
-
-def distance(G, i):
-    D = [-1] * len(G)  # D = {}
-    Q = deque()
-    D[i] = 0
-    Q.append(i)
-    while Q:
-        i = Q.popleft()
-        for j in G[i]:
-            if D[j] == -1:  # if j not in D:
-                D[j] = D[i] + 1
-                Q.append(j)
-    return [d for d in D if d > 0]
-
-
-def distances(G, n=100):
-    D = []  # D = {}
-    for i in G.nodes() if len(G) <= n else random.sample(G.nodes(), n):
-        D.append(distance(G, i))  # D[i] = distance(G, i)
-    return D
-
-
-def isolated(G, i):
-    for j in G[i]:
-        if j != i:
-            return False
-    return True
-
-
-def tops(G, C, centrality, n=15):
-    print("{:>12s} | '{:s}'".format('Centrality', centrality))
-    for i, c in sorted(C.items(), key=lambda item: (item[1], G.degree[item[0]]), reverse=True)[:n]:
-        print("{:>12.6f} | '{:s}' ({:,d})".format(c, G.nodes[i]['label'], G.degree[i]))
-    print()
-
-
-def info(G):
-    print("{:>10s} | '{:s}'".format('Graph', G.name))
-
-    n = G.number_of_nodes()
-    n0, n1, delta = 0, 0, 0
-    for i in G.nodes():
-        if isolated(G, i):
-            n0 += 1
-        elif G.degree(i) == 1:
-            n1 += 1
-        if G.degree(i) > delta:
-            delta = G.degree(i)
-
-    print("{:>10s} | {:,d} ({:,d}, {:,d})".format('Nodes', n, n0, n1))
-
-    m = G.number_of_edges()
-    m0 = nx.number_of_selfloops(G)
-
-    print("{:>10s} | {:,d} ({:,d})".format('Edges', m, m0))
-    print("{:>10s} | {:.2f} ({:,d})".format('Degree', 2 * m / n, delta))
-
-    C = components(G)
-
-    print("{:>10s} | {:.1f}% ({:,d})".format('LCC', 100 * max(len(c) for c in C) / n, len(C)))
-
-    D = distances(G)
-    D = [i for d in D for i in d]
-
-    print("{:>10s} | {:.2f} ({:,d})".format('Distance', sum(D) / len(D), max(D)))
-
-    if isinstance(G, nx.MultiGraph):
-        G = nx.Graph(G)
-
-    print("{:>10s} | {:.4f}".format('Clustering', nx.average_clustering(G)))
-    print()
-    tops(G, {i: k / (len(G) - 1) for i, k in G.degree()}, 'degree')
-
-    tops(G, nx.clustering(G), 'clustering')
-    tops(G, {i: c * (G.degree(i) - 1) for i, c in nx.clustering(G).items()}, '~μ-clustering')
-    tops(G, nx.eigenvector_centrality_numpy(G), 'eigenvector')
-
-    tops(G, nx.pagerank(G), 'pagerank')
-
-    tops(G, nx.closeness_centrality(G), 'closeness')
-
-    tops(G, nx.betweenness_centrality(G), 'betweenness')
-
-
 def createNXGraph(leg_year, base_path=BUNDESTAG_GRAPH_PATH):
     G = nx.Graph()
     leg_period = year_to_period(leg_year)
@@ -211,7 +141,7 @@ def createNXGraph(leg_year, base_path=BUNDESTAG_GRAPH_PATH):
     return G
 
 
-def cluster_distances(G):
+def cluster_distances(G, print_distances=False):
     cluster = {}
     for u, v, data in G.edges(data=True):
 
@@ -225,10 +155,11 @@ def cluster_distances(G):
             cluster.update({(cluster_tuple[1], cluster_tuple[0]): (weight + current[0], 1 + current[1])})
         else:
             cluster.update({cluster_tuple: (weight, 1)})
-    for c in cluster:
-        print(c, cluster[c][0] / cluster[c][1])
+    if print_distances:
+        for c in cluster:
+            print(c, cluster[c][0] / cluster[c][1])
+    return cluster
 
-
-G = createNXGraph(2013, './graphs/Bundestag/')
+# G = createNXGraph(2013, './graphs/Bundestag/')
 # cluster_distances(G)
 # print(get_weight_list(G))
