@@ -1,5 +1,5 @@
 # INA_Project_2023
 
-[Hackmd](https://hackmd.io/team/ina2023?nav=overview) für Worklflow 
+The Visualizations of the graph are located in the folder visualizations.
 
-abgeordneten data for legislature period 2021-2025 of the Bundestag can be downloaded [here](https://drive.google.com/file/d/1dCgiJXtu-KLl5e2UPnJMjhVXf6eBPToJ/view?usp=sharing).
+The graph data for all legislature period of the Bundestag can be viewed at src/graphs/Bundestag or at src/graphs/Bundestag_only_Attendance (Here, all no show votes are excluded). 
