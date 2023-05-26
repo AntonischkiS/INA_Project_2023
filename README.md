@@ -6,7 +6,7 @@ The Visualizations of the graphs in a png format created with the force atlas al
 
 The created graphs saved as gexf files and in a pajek format for all legislature period of the Bundestag can be viewed at src/graphs/Bundestag or at src/graphs/Bundestag_only_Attendance (Here, all no show votes are excluded). The gexf files can be opened with gephi or other software to create your own Visualizations.
 
-If you want to run the code yourself you need the following info:
+## How to run code:
 
 To create the pajek format for the data from dataverse.harvard.edu you need download the voting_behavior_V2_19492021.dta file first and put into the project at src\data\BTVote\voting_behavior_V2_19492021.dta. Then run the notebook src/create_network_btvote.ipynb and asign the ep variable the number of the legislature period for which you want to create the graph and set the abscence DISREGARD_ABSENCE Variable to True or false wether you want to ignore the noshow options or not.
 
