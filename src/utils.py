@@ -29,15 +29,17 @@ def sort_normalize_faction_name(c):
     return c, old
 
 
-def in_cluster_distance(year, base_path=BUNDESTAG_GRAPH_PATH):
-    G = createNXGraph(year, base_path=base_path)
-    cluster = cluster_distances(G)
+def in_cluster_distance(year):
+    G1 = createNXGraph(year, base_path=BUNDESTAG_GRAPH_PATH)
+    G2 = createNXGraph(year, base_path=BUNDESTAG_GRAPH_PATH_V2)
+    cluster1 = cluster_distances(G1)
+    cluster2 = cluster_distances(G2)
     distances = []
-    for c in cluster:
-        c, old = sort_normalize_faction_name(c)
-        if c[0] != c[1] or c[1] == 'fraktionslos' or c[0] == 'fraktionslos':
+    for c1 in cluster1:
+        c1, old = sort_normalize_faction_name(c1)
+        if c1[0] != c1[1] or c1[1] == 'fraktionslos' or c1[0] == 'fraktionslos':
             continue
-        distances.append((c[0], cluster[old][0] / cluster[old][1]))
+        distances.append((c1[0], cluster1[old][0] / cluster1[old][1], cluster2[old][0] / cluster2[old][1]))
     return distances
 
 

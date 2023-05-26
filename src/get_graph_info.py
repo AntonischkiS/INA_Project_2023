@@ -1,8 +1,10 @@
+from tabulate import tabulate
 from utils import *  # info, plot_weights_hist, createNXGraph, cluster_distances, factions_for_range
 
 # plot_all_legislatures()
 # plot_pw_cl_distances()
-print(in_cluster_distance(2017))
+dists = in_cluster_distance(2017)
+print(tabulate(dists, headers=['Faction', 'Distance', 'Absence excluded distance'], tablefmt="latex", floatfmt=".4f"))
 # for i in range(2013, 2014, 4):
 #     G = createNXGraph(i)
 #     # info(G)
