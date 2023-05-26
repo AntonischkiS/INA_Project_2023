@@ -1,6 +1,8 @@
 from utils import *  # info, plot_weights_hist, createNXGraph, cluster_distances, factions_for_range
 
-plot_pw_cl_distances()
+# plot_all_legislatures()
+# plot_pw_cl_distances()
+print(in_cluster_distance(2017))
 # for i in range(2013, 2014, 4):
 #     G = createNXGraph(i)
 #     # info(G)

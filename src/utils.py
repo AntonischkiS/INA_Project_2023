@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 BUNDESTAG_DATA_PATH = "data/Bundestag/"
 BUNDESTAG_GRAPH_PATH = "graphs/Bundestag/"
 BUNDESTAG_GRAPH_PATH_V2 = "graphs/Bundestag_only_Attendance/"
-TRANSLATIONS = {"other": "fraktionslos", "Greens": "Die Grünen","DIE GRÜNEN": "Die Grünen", "BÜNDNIS 90/DIE GRÜNEN": "Die Grünen",
-                "Left/PDS": "Die Linke", "CDU/CSU": "CDU", "DIE LINKE.":"Die Linke", "DIE LINKE":"Die Linke"}
+TRANSLATIONS = {"other": "fraktionslos", "Greens": "Die Grünen", "DIE GRÜNEN": "Die Grünen",
+                "BÜNDNIS 90/DIE GRÜNEN": "Die Grünen",
+                "Left/PDS": "Die Linke", "CDU/CSU": "CDU", "DIE LINKE.": "Die Linke", "DIE LINKE": "Die Linke"}
 YEAR_TO_LEG_ID = {"2021": 132, "2017": 111, "2013": 97, "2009": 83, "2005": 67}
 ELEC_YEARS = [1949, 1953, 1957, 1961, 1965, 1969, 1972, 1976, 1980, 1983, 1987,
               1990, 1994, 1998, 2002, 2005, 2009, 2013, 2017, 2021, 2025]
@@ -20,20 +21,40 @@ def translate_faction_name(name):
     return name
 
 
-def pairwise_cluster_distances():
+def sort_normalize_faction_name(c):
+    old = c
+    fst = translate_faction_name(c[0])  # translate to avoid duplicates
+    snd = translate_faction_name(c[1])
+    c = (max(fst, snd), min(fst, snd))  # sort tuple to avoid duplicates
+    return c, old
+
+
+def in_cluster_distance(year, base_path=BUNDESTAG_GRAPH_PATH):
+    G = createNXGraph(year, base_path=base_path)
+    cluster = cluster_distances(G)
+    distances = []
+    for c in cluster:
+        c, old = sort_normalize_faction_name(c)
+        if c[0] != c[1] or c[1] == 'fraktionslos' or c[0] == 'fraktionslos':
+            continue
+        distances.append((c[0], cluster[old][0] / cluster[old][1]))
+    return distances
+
+
+def pairwise_cluster_distances(factions_to_eval=None):  # ["SPD", "CDU", "FDP"]
     faction_distance = {}
     years = {}
     for i, year in tqdm(enumerate(ELEC_YEARS[:-1])):
         G = createNXGraph(year, base_path=BUNDESTAG_GRAPH_PATH)
         cluster = cluster_distances(G)
         for c in cluster:
-            old = c
-            fst = translate_faction_name(c[0])  # translate to avoid duplicates
-            snd = translate_faction_name(c[1])
-            c = (max(fst, snd), min(fst, snd))  # sort tuple to avoid duplicates
+            c, old = sort_normalize_faction_name(c)
             # Exclude same faction and faction-less
             if c[0] == c[1] or c[1] == 'fraktionslos' or c[0] == 'fraktionslos':
                 continue
+            if factions_to_eval is not None:
+                if c[0] not in factions_to_eval or c[1] not in factions_to_eval:
+                    continue
             if c not in faction_distance:
                 faction_distance[c] = []
             faction_distance[c].append(cluster[old][0] / cluster[old][1])
@@ -50,6 +71,17 @@ def plot_pw_cl_distances():
     plt.legend()
     plt.ylabel('Distance')
     plt.xlabel('Year')
+    plt.show()
+
+
+# Usage not recommended, plot looks shitty and is not very informative
+def plot_all_legislatures():
+    fig, axes = plt.subplots(5, 5)
+    for i, year in enumerate(ELEC_YEARS[:-1]):
+        G = createNXGraph(year, base_path=BUNDESTAG_GRAPH_PATH)
+        ax = axes[i // 5, i % 5]
+        nx.draw(G, nx.spring_layout(G, iterations=10), ax=ax, node_size=.01)
+    # fig.tight_layout()
     plt.show()
 
 
