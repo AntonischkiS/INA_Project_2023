@@ -49,4 +49,4 @@ if __name__ == '__main__':
         print("invalid election year")
         exit()
     leg_year = sys.argv[1]
-    pajek_to_gexf(utils.BUNDESTAG_GRAPH_PATH, leg_year)
+    pajek_to_gexf(utils.BUNDESTAG_GRAPH_PATH_V2, leg_year)
